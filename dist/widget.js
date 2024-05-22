@@ -45,6 +45,7 @@ export default class PowerboardCommercetoolsWidget {
         this.additionalInfo = undefined;
         this.isValidForm = false;
         this.wasInit = false;
+        this.existingCard = false;
         this.billingInfo = {};
         this.shippingInfo = {};
         this.cartItems = [];
@@ -548,7 +549,7 @@ export default class PowerboardCommercetoolsWidget {
         } else {
             const htmlBtnElem = document.querySelector('#powerboardAPMsAfterpayButton');
             if (htmlBtnElem === null) widgetContainer.insertAdjacentHTML('afterBegin', '<div align="center" id="powerboardAPMsAfterpayButton"></div>');
-            this.widget = new paydock.AfterpayCheckoutButton(this.selector,this.accessToken, configMethod.alternative_payment_methods_afterpay_v1_gateway_id);
+            this.widget = new cba.AfterpayCheckoutButton(this.selector, this.accessToken,  configMethod.alternative_payment_methods_afterpay_v1_gateway_id);
         }
         if (this.widget) {
             const inputHidden = document.querySelector('[name="payment_source_apm_token"]');
@@ -601,23 +602,17 @@ export default class PowerboardCommercetoolsWidget {
                     request_shipping: false,
                     show_billing_address: true,
                     raw_data_initialization: {
-                        google: {
-                            type: "CARD",
-                            parameters: {
-                                allowedAuthMethods: ["PAN_ONLY", "CRYPTOGRAM_3DS"], // TODO evaluate "CRYPTOGRAM_3DS"
-                                allowedCardNetworks: [
-                                    "AMEX",
-                                    "DISCOVER",
-                                    "INTERAC",
-                                    "JCB",
-                                    "MASTERCARD",
-                                    "VISA",
-                                ],
-                                billingAddressRequired: true,
-                                billingAddressParameters: {
-                                    format: "FULL",
-                                },
-                            },
+                        apple: {
+                            countryCode: this.billingInfo.address_country,
+                            currencyCode: this.currency,
+                            merchantCapabilities: ["supports3DS","supportsCredit","supportsDebit"],
+                            supportedNetworks: ["visa","masterCard","amex","discover"],
+                            requiredBillingContactFields: ["name","postalAddress"],
+                            total: {
+                                label: "Total",
+                                amount: this.amount,
+                                type: "final",
+                            }
                         },
                     },
                 });
@@ -714,6 +709,9 @@ export default class PowerboardCommercetoolsWidget {
 
         if (this.type === 'card') {
             if (['In-built 3DS', 'Standalone 3DS'].includes(configMethod.card_3ds)) {
+                if(this.existingCard && this.hasVaultToken()){
+                    return result;
+                }
                 let charge3dsId;
                 if (configMethod.card_3ds === 'In-built 3DS') {
                     charge3dsId = await this.initCardInBuild3Ds(this.saveCard);
@@ -1250,6 +1248,9 @@ export default class PowerboardCommercetoolsWidget {
                                     this.vaultToken = credential.vault_token;
                                     const inputHidden = document.querySelector('[name="payment_source_card_token"]');
                                     inputHidden.value = this.vaultToken;
+                                    if(credential.customer_id !== undefined && credential.customer_id) {
+                                        this.existingCard = true;
+                                    }
                                 }
                             }
                         }
