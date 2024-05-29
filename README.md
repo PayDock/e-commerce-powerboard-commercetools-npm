@@ -34,7 +34,7 @@ import '@power-board-commercetools/powerboard/dist/widget.css';
 
 ### Embed script and stylesheet
 
-1. Embed the PowerBoard Commercetools script element a the beginning of your JavaScript file in your Checkout page.
+1. Embed the PowerBoard Commercetools script element at the beginning of your JavaScript file in your Checkout page.
 
 ```html
 <script src="powerboard-commercetools/widget.js"></script>
@@ -81,7 +81,7 @@ To do this you must create an instance of Drop-in and then mount the instance to
 
 ### 1. Load the PowerBoard script
 
-Load the Paydock script. Ensure that all logic related to the widget and widget initialization occurs after the file is loaded. For example:
+Load the PowerBoard script. Ensure that all logic related to the widget and widget initialization occurs after the file is loaded. For example:
 
 ```javascript
 import {loadScript} from "vue-plugin-load-script";
