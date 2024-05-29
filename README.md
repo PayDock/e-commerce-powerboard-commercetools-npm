@@ -1,14 +1,20 @@
 # PowerBoard Commercetools
 
-PowerBoard commercetools provides you with the building blocks to create a checkout experience for your shoppers, allowing them to pay using the payment method of their choice.
+## Table of Contents
 
-## Installation
+* [Install PowerBoard Commercetools](#install-powerboard-commercetools)
+* [Embed your Script and Stylesheet](#embed-your-script-and-stylesheet)
+* [Create a DOM element for Drop-in](#create-a-dom-element-for-drop-in)
+* [Setup Drop-in](#setup-drop-in)
+* [Initialize the Payment Session](#initialize-the-payment-session)
 
-### Node package manager
+Create an end-to-end checkout experience for your shoppers using PowerBoard's Commercetools.
 
-Install the [PowerBoard Commercetools Node package](https://www.npmjs.com/package/@power-board-commercetools/powerboard)
+## Install PowerBoard Commercetools
 
-#### npm or yarn (recommended)
+1. Install the [PowerBoard Commercetools Node package](https://www.npmjs.com/package/@power-board-commercetools/powerboard)
+
+2. Install the PowerBoard Commercetools using either npm or yarn. The two commands for this are as follows:
 
 ```bash
 npm install @power-board-commercetools/powerboard
@@ -18,7 +24,7 @@ npm install @power-board-commercetools/powerboard
 yarn add @power-board-commercetools/powerboard
 ```
 
-Import PowerBoard into your application. You can add your own styling by overriding the rules in the CSS file.
+3. Import PowerBoard into your application. Add your own styling by overriding the rules in the CSS file.
 
 ```javascript
 import PowerboardCommercetoolWidget from '@power-board-commercetools/powerboard';
@@ -28,13 +34,13 @@ import '@power-board-commercetools/powerboard/dist/widget.css';
 
 ### Embed script and stylesheet
 
-Embed the PowerBoard Commercetools script element above any other JavaScript in your checkout page.
+1. Embed the PowerBoard Commercetools script element a the beginning of your JavaScript file in your Checkout page.
 
 ```html
 <script src="powerboard-commercetools/widget.js"></script>
 ```
 
-Embed the PowerBoard Commercetools stylesheet. You can add your own styling by overriding the rules in the CSS fil
+2. Embed the PowerBoard Commercetools stylesheet. You can add your own styling by overriding the rules in the CSS file.
 
 ```html
 <link rel="stylesheet" href="powerboard-commercetools/widget.css">
@@ -43,17 +49,21 @@ Embed the PowerBoard Commercetools stylesheet. You can add your own styling by o
 
 ## Create a DOM element for Drop-in
 
-Create a DOM container element on your checkout page where you want Drop-in to be rendered and give it a descriptive id.
+1. Create a DOM container element on your checkout page.
 
 ```html
 <div id="powerboard-widget-container">
      <!-- PowerBoard Checkout will be mounted here -->
 </div>
 ```
-## Set up Drop-in
-## Create store for Drop-in
 
-Create a global store where the properties of each payment method will be written when the widget is initialized.
+2. Place the DOM container element where you want Drop-in to be rendered, and provide a descriptive ID for your div element.
+
+## Set up Drop-in
+
+1. Сreate a global store for Drop-in. 
+
+2. When the widget is initialized, the properties of each payment method are written to the global store. 
 
 ```javascript
 import { reactive } from 'vue';
@@ -63,14 +73,15 @@ const powerboardStore = reactive({});
 export default powerboardStore;
 ```
 
-## Initialize the payment session. Example on Vue.js
+## Initialize the payment session
 
-Create an instance of Drop-in and mount it to the container element you created.
+The following example demonstrates how to initialize a payment session with Vue.js.
 
-### 1. Load PowerBoard script
+To do this you must create an instance of Drop-in and then mount the instance to the container element created in the setup section. Detailed instructions describing how to create and mount Drop-in are as follows:
 
-Add function load PowerBoard script (Make sure that all subsequent logic related to the widget and widget initialization happens
-after the file is loaded), for example do something like this:
+### 1. Load the PowerBoard script
+
+Load the Paydock script. Ensure that all logic related to the widget and widget initialization occurs after the file is loaded. For example:
 
 ```javascript
 import {loadScript} from "vue-plugin-load-script";
@@ -82,7 +93,10 @@ const isSandbox = configuration?.sandbox_mode;
 
 await loadScript(isSandbox === 'Yes' ? SANDBOX_POWERBOARD_URL : PRODUCTION_POWERBOARD_URL)
 ```
-### 2. Set configuration data. Example:
+### 2. Set configuration data
+
+The following is an example of the setup for your config data. 
+
 ```javascript
 const config = {
   api: 'https://api.europe-west1.gcp.commercetools.com',
@@ -100,9 +114,9 @@ const config = {
 
 ### 3. Get PowerBoard payment configuration
 
-First of all you need to get information about the cart, customer, and methods for working with the cart
+To initialize the checkout, you need the configuration information about the cart, customer, and the methods for working with the cart.
 
-Here in the response we get the configuration, the available payment methods and the unique payment ID.
+The following response demonstrates the full configuration, the available payment methods, and the unique payment ID.
 
 ```javascript
 import axios from "axios";
@@ -153,16 +167,17 @@ const getPaydockPaymentsConfiguration = async () => {
 }
 ```
 
-### 4. Add function initialize PowerBoard checkout.
+### 4. Add a function that initializes the PowerBoard checkout
 
-Function is responsible for
+The following function initializes the PowerBoard checkout. You can use this function to:
 
 - Get the parameters
-- Creating a widget
-- Display of payment methods
-- Widget storage and event handling
+- Create a widget
+- Display payment methods
+- Use widget storage and event handling
 
-Create a new widget
+
+1. Create a new widget.
 
 ```javascript
 function initPowerboardCheckout(paymentMethod, paydockStore, configuration, PowerboardCommercetoolWidget) {
@@ -181,7 +196,8 @@ function initPowerboardCheckout(paymentMethod, paydockStore, configuration, Powe
 }
 ```
 
-Handle specific logic for saving card details. Check if the user is logged and widget.isSaveCardEnable() equal true, use widget render methods.
+2. Handle the logic for saving card details. Check that the customer is logged in and that widget.isSaveCardEnable() equals true. Use the widget render methods.
+
 
 ```javascript
 widget.renderSaveCardCheckbox(); 
@@ -189,32 +205,32 @@ widget.renderCredentialsSelect();
 
 ```
 
-Set amount and currency for the widget based on the cart data
+3. Set the amount and currency for the widget based on the cart data.
 
 ```javascript
 widget.setAmount(totalPrice);
 widget.setCurrency(currencyCode);
 ```
 
-Display payment methods on the widget
+4. Display the payment methods on the widget.
 
 ```javascript
 widget.displayPaymentMethods(paymentMethod);
 ``` 
 
-Load the widget (card, bank)
+5. Load the widget.
 
 ```javascript
 widget.loadWidget()
 ```
 
-Get widget
+6. Get the widget.
 
 ```javascript
 widget.widget
 ```
 
-### 5. Component mount
+### 5. Mount the Component
 
 ```javascript
 onMounted(async () => {
@@ -230,15 +246,15 @@ onMounted(async () => {
 
 ### 6. Add a custom hook for handling PowerBoard payments
 
-**During order placement, if the checkout form is valid and the payment method is powerboard, we will provide the function of creating an order through powerboard in which:**
+**Note:** During order placement, if the checkout form is valid and the payment method is PowerBoard, we provide the function of creating an order through PowerBoard where:
 
-1. We receive the value of a one-time OTT token from the widget
+1. PowerBoard receives the value of a one-time OTT token from the widget.
 
 ```javascript
 input[name="payment_source_card_token"]
 ```
 
-2. We collect the required data and transfer it to the widget
+2. PowerBoard collects the required data and transfers it to the widget.
 
 ```javascript
 widget.setAmount(totalPrice)
@@ -246,27 +262,35 @@ widget.setCurrency(currencyCode)
 widget.currencyCode.setPaymentSource(paymentSource)
 widget.setAdditionalInfo(additionalInfo)
 ```
-For wallets you must set form validation state:
+3. For wallets you must set a validation state in the form:
+
 ```javascript
 widget.setIsValidForm(true);
 ```
 
-3. Get vault token for the payment
+3. PowerBoard gets the vault token for the payment.
 
 ```javascript
 widget.getVaultToken()
 ```
 
-4. We create a payment by updating the existing commercetools api "makePaymentRequest"
+4. PowerBoard creates a payment by updating the existing Commercetools API "makePaymentRequest".
 
-Create payment using the collected data
+### 7. Create a payment using the collected data
+
+Create a payment with the collected data using the following function:
 
 ```javascript
 createPayment({...}) 
 ```
-In the createPayment function, you must perform 3 actions:
-- First. Create payment, send a request to create a payment in the PowerBoard system - through the extension, using the
-  custom field makePaymentRequest where "widget.paymentId" its unique payment ID from step 3.
+
+You must perform 3 actions in the createPayment function:
+
+1. First you must create the payment.  
+
+Send a request to create a payment in the PowerBoard system through the extension. Use the
+custom field makePaymentRequest where "widget.paymentId" is the unique payment ID from step 3, [Get PowerBoard Payment configuration](#3-get-powerboard-payment-configuration).
+
 ```javascript
 //example for "Google Pay"
 
@@ -332,7 +356,8 @@ if (paymentExtensionResponse) {
 
 ```
 
-- Second. Add payment to cart
+2. Add the payment to the cart.
+
 ```javascript
 response = await fetchWithToken(`${config.ct.api}/${config.ct.auth.projectKey}/carts/${cartId}`, {
     method: 'GET',
@@ -356,7 +381,8 @@ response = await fetchWithToken(`${config.ct.api}/${config.ct.auth.projectKey}/c
     }),
 });
 ```
-- Third. Process order
+3. Process the order.
+
 ```javascript
 currentCart = await response.json();
 await fetchWithToken(`${config.ct.api}/${config.ct.auth.projectKey}/orders`, {
@@ -372,12 +398,12 @@ await fetchWithToken(`${config.ct.api}/${config.ct.auth.projectKey}/orders`, {
 });
 ```
 
-5. Link the payment to the order and create the order
+4. Link the payment to the order and create the order.
 
 
-### 7. Transfer information to widget
+### 8. Transfer information to the widget
 
-To pass payment information, pass the objects of this structure to the setBillingInfo() and setShippingInfo() methods.
+1. To pass payment information, pass the objects of this structure to the setBillingInfo() and setShippingInfo() methods.
 
 ```javascript
 setBillingInfo({
@@ -394,7 +420,7 @@ setBillingInfo({
 });
 ```
 
-for cart item information pass the object of this structure to the setCartItems method.
+2. For cart item information, pass the object of this structure to the setCartItems method.
 
 ```javascript
 setCartItems([
@@ -411,9 +437,9 @@ setCartItems([
 
 ### 8. Thank You page
 
-After making the payment, it redirect to the Thank you page and the text is displayed depending on the completion of the payment.
+After making the payment, your customer is redirected to the Thank you page. Text is then displayed depending on the completion status of the payment.
 
-If status pending 'yes', we use text
+If the status is pending 'yes', the following text displays:
 
 ```json
 {
@@ -421,7 +447,7 @@ If status pending 'yes', we use text
 }
  ```
 
-If status pending 'no', we use text
+If the status is pending 'no', the following text displays:
 
 ```json
 {
@@ -429,7 +455,7 @@ If status pending 'no', we use text
 }
  ```
 
-Use the function redirectToThankYouPage to receive a text status about the order.
+Use the function redirectToThankYouPage to receive a text about the status of the order.
 
 ```javascript
 async function redirectToThankYouPage(router) {
