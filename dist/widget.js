@@ -1,5 +1,6 @@
 export default class PowerboardCommercetoolsWidget {
-    constructor({selector, type, configuration, userId, paymentButtonSelector, radioGroupName}) {
+    constructor({selector, type, configuration, userId, paymentButtonSelector, radioGroupName, iconPath = '/images/powerboard'}) {
+        this.iconPath = iconPath.endsWith('/') ? iconPath.slice(0, -1) : iconPath;
         this.selector = selector;
         this.type = type;
         this.configuration = configuration;
@@ -411,10 +412,38 @@ export default class PowerboardCommercetoolsWidget {
         if(this.configuration.payment_methods[this.type]) {
             this.configuration.payment_methods[this.type].description = description;
         }
-        const methodName = document.createTextNode(title);
-        const italicElement = document.createElement('i');
-        italicElement.appendChild(methodName);
-        label.appendChild(italicElement);
+
+        let imageName = this.type;
+        const methodName = document.createElement('span')
+        methodName.textContent = title;
+        switch(this.type){
+            case 'card':
+                const logo = document.createElement('img');
+                const cartIcon = document.createElement('img');
+
+                logo.setAttribute('src',`${this.iconPath}/logo.png`)
+                cartIcon.setAttribute('src',`${this.iconPath}/icons/${imageName}.png`)
+
+                logo.className = 'powerboard-payment-cart-logo'
+                cartIcon.className = 'powerboard-payment-cart-icon'
+
+                label.appendChild(cartIcon);
+                label.appendChild(methodName);
+                label.appendChild(logo);
+                break;
+            case "afterpay_v1":
+            case 'afterpay_v2':
+                imageName = 'afterpay';
+            default:
+                const paymentIcon = document.createElement('img');
+
+                paymentIcon.setAttribute('src',`${this.iconPath}/icons/${imageName}.png`)
+
+                paymentIcon.className = `powerboard-payment-${imageName}-logo`
+
+                label.appendChild(paymentIcon);
+                label.appendChild(methodName);
+        }
 
         methodContainer.appendChild(methodHead);
 
@@ -527,6 +556,7 @@ export default class PowerboardCommercetoolsWidget {
                 this.widget.setElementStyle('title_description', elementCustomStyles?.title_description);
             }
 
+            this.widget.setEnv(this.configuration.sandbox_mode === 'Yes' ? 'preproduction_cba' : 'production_cba');
             this.widget.interceptSubmitForm(this.selector);
             this.widget.load();
         }
@@ -556,6 +586,7 @@ export default class PowerboardCommercetoolsWidget {
             if (inputHidden === null) widgetContainer.insertAdjacentHTML('afterend', '<input type="hidden" name="payment_source_apm_token">')
             this.widget.onFinishInsert('input[name="payment_source_apm_token"]', 'payment_source_token');
             this.widget.setMeta(this.getMetaData('afterpay_v1' === type));
+            this.widget.setEnv(this.configuration.sandbox_mode === 'Yes' ? 'preproduction_cba' : 'production_cba');
             this.widget.on('finish', () => {
                 if (this.paymentButtonElem) {
                     this.paymentButtonElem.click();
@@ -962,19 +993,50 @@ export default class PowerboardCommercetoolsWidget {
         }
 
         const envVal = this.configuration.sandbox_mode === 'Yes' ? 'preproduction_cba' : 'production_cba';
-
+        const billingLine2 = this?.billingInfo?.address_line2 ?? null;
+        const shippingLine2 = this?.shippingInfo?.address_line2 ?? null;
+        const currency = this.currency ?? 'AUD';
         const preAuthData = {
             amount: this.amount,
-            currency: 'AUD', // this.currency
-        };
-
-        if (configMethod.card_3ds_flow === 'With vault' || forcePermanentVault) {
-            preAuthData.customer = {
+            currency: currency,
+            customer: {
+                first_name: this?.billingInfo?.first_name,
+                last_name: this?.billingInfo?.last_name,
+                email: this?.billingInfo?.email,
+                phone: this?.billingInfo?.phone,
                 payment_source: {
-                    vault_token: this.vaultToken,
-                    gateway_id: configMethod.card_gateway_id
+                    address_country: this?.billingInfo?.address_country,
+                    address_city: this?.billingInfo?.address_city,
+                    address_postcode: this?.billingInfo?.address_postcode,
+                    address_line1: this?.billingInfo?.address_line1
+                }
+            },
+            shipping: {
+                address_country: this?.shippingInfo?.address_country ?? this?.billingInfo?.address_country,
+                address_state: this?.shippingInfo?.address_state ?? this?.billingInfo?.address_state,
+                address_city: this?.shippingInfo?.address_city ?? this?.billingInfo?.address_city,
+                address_postcode: this?.shippingInfo?.address_postcode ?? this?.billingInfo?.address_postcode,
+                address_line1: (this.shippingInfo?.address_line1) ?? this?.billingInfo?.address_line1,
+                contact: {
+                    first_name: this?.shippingInfo?.first_name ?? this?.billingInfo?.first_name,
+                    last_name: this?.shippingInfo?.last_name ?? this?.billingInfo?.last_name,
+                    email: this?.shippingInfo?.email ?? this?.billingInfo?.email,
+                    phone: this?.shippingInfo?.phone ?? this?.billingInfo?.phone
                 }
             }
+        }
+
+        if (billingLine2) {
+            preAuthData.customer.address_line2 = billingLine2;
+        }
+        if (shippingLine2) {
+            preAuthData.shipping.address_line2 = shippingLine2;
+        }
+
+
+        if (configMethod.card_3ds_flow === 'With vault' || forcePermanentVault) {
+            preAuthData.customer.payment_source.vault_token = this.vaultToken;
+            preAuthData.customer.payment_source.gateway_id = configMethod.card_gateway_id;
         } else {
             preAuthData.token = this.paymentSource
         }
@@ -988,7 +1050,8 @@ export default class PowerboardCommercetoolsWidget {
             return false;
         }
 
-        this.canvas = new powerboard.Canvas3ds(this.canvasSelector, preAuthResp._3ds.token);
+        this.canvas = new cba.Canvas3ds(this.canvasSelector, preAuthResp._3ds.token);
+        //this.canvas.setEnv(envVal)
         this.canvas.load();
 
         widgetContainer.classList.add('hide');
@@ -1024,8 +1087,7 @@ export default class PowerboardCommercetoolsWidget {
         }
 
         const threeDsToken = await this.getStandalone3dsToken();
-
-        this.canvas = new powerboard.Canvas3ds(this.canvasSelector, threeDsToken);
+        this.canvas = new cba.Canvas3ds(this.canvasSelector, threeDsToken);
         this.canvas.load();
 
         widgetContainer.classList.add('hide');

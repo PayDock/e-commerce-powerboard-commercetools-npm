@@ -198,10 +198,10 @@
     display: flex;
     align-items: center;
     position: relative;
+    flex-direction: column;
 }
 .powerboard-widget_head img {
     vertical-align: middle;
-    margin: 0 5px;
     position: relative;
     z-index: 1;
 }
@@ -246,16 +246,10 @@
 .powerboard-widget_body {
     margin-bottom: 20px;
 }
-.powerboard-widget_head label i:after {
-    content: "";
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    right: 0;
-    margin: auto;
+.powerboard-widget_head label img {
+    margin-left: 5px;
+    height: 25px;
     background-repeat: no-repeat;
-    width: 20px;
-    height: 20px;
 }
 #powerboardAPMsAfterpayButton,
 #powerboardAPMsZipButton {
@@ -319,4 +313,32 @@
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
+}
+.powerboard-widget_head label img.powerboard-payment-cart-icon {
+    margin: auto 23px;
+}
+.powerboard-widget_head label img.powerboard-payment-cart-logo {
+    margin-left: auto;
+}
+.powerboard-widget_head label span  {
+    font-weight: 500;
+    min-width: max-content;
+    margin-left: 10px;
+}
+.powerboard-widget_head label img.powerboard-payment-apple-pay-logo {
+    margin: -1px 11px;
+}
+.powerboard-widget_head label img.powerboard-payment-google-pay-logo {
+    margin: -1px 17px;
+}
+.powerboard-widget_head label img.powerboard-payment-afterpay-logo {
+    margin: auto 6px;
+}
+.powerboard-widget_head label img.powerboard-payment-zippay-logo {
+    height: 20px;
+    margin: -6px 13px 0px;
+}
+.powerboard-widget_head label img.powerboard-payment-paypal_smart-logo {
+    height: 20px;
+    margin-top: 2px;
 }
