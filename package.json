@@ -26,12 +26,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://gitlab.com/jsp8795506/powerboard-commercetools-npm.git"
+    "url": "git+https://github.com/CommBank-PowerBoard/powerboard-e-commerce-commercetools-npm.git"
   },
   "author": "JSP",
   "license": "MIT",
   "bugs": {
-    "url": "https://gitlab.com/jsp8795506/powerboard-commercetools-npm/issues"
+    "url": "https://github.com/CommBank-PowerBoard/powerboard-e-commerce-commercetools-npm/issues"
   },
-  "homepage": "https://gitlab.com/jsp8795506/powerboard-commercetools-npm#readme"
+  "homepage": "https://github.com/CommBank-PowerBoard/powerboard-e-commerce-commercetools-npm#readme"
 }
