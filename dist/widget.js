@@ -556,7 +556,8 @@ export default class PowerboardCommercetoolsWidget {
                 this.widget.setElementStyle('title_description', elementCustomStyles?.title_description);
             }
 
-            this.widget.setEnv(this.configuration.sandbox_mode === 'Yes' ? 'preproduction_cba' : 'production_cba');
+            const envValue = this.getEnvValue();
+            this.widget.setEnv(envValue);
             this.widget.interceptSubmitForm(this.selector);
             this.widget.load();
         }
@@ -586,7 +587,9 @@ export default class PowerboardCommercetoolsWidget {
             if (inputHidden === null) widgetContainer.insertAdjacentHTML('afterend', '<input type="hidden" name="payment_source_apm_token">')
             this.widget.onFinishInsert('input[name="payment_source_apm_token"]', 'payment_source_token');
             this.widget.setMeta(this.getMetaData('afterpay_v1' === type));
-            this.widget.setEnv(this.configuration.sandbox_mode === 'Yes' ? 'preproduction_cba' : 'production_cba');
+
+            const envValue = this.getEnvValue();
+            this.widget.setEnv(envValue);
             this.widget.on('finish', () => {
                 if (this.paymentButtonElem) {
                     this.paymentButtonElem.click();
@@ -699,8 +702,8 @@ export default class PowerboardCommercetoolsWidget {
         }
 
         if (widget) {
-            const envVal = this.configuration.sandbox_mode === 'Yes' ? 'preproduction_cba' : 'production_cba';
-            widget.setEnv(envVal);
+            const envValue = this.getEnvValue();
+            widget.setEnv(envValue);
             widget.onUnavailable(() => console.log("No wallet buttons available"));
             widget.onPaymentError((data) => console.log("The payment was not successful"));
             widget.onPaymentInReview((result) => {
@@ -992,7 +995,7 @@ export default class PowerboardCommercetoolsWidget {
             this.vaultToken = await this.getVaultToken();
         }
 
-        const envVal = this.configuration.sandbox_mode === 'Yes' ? 'preproduction_cba' : 'production_cba';
+        const  envValue = this.getEnvValue()
         const billingLine2 = this?.billingInfo?.address_line2 ?? null;
         const shippingLine2 = this?.shippingInfo?.address_line2 ?? null;
         const currency = this.currency ?? 'AUD';
@@ -1042,7 +1045,7 @@ export default class PowerboardCommercetoolsWidget {
         }
 
         const preAuthResp = await new cba.Api(this.accessToken)
-            .setEnv(envVal)
+            .setEnv(envValue)
             .charge()
             .preAuth(preAuthData);
 
@@ -1322,6 +1325,13 @@ export default class PowerboardCommercetoolsWidget {
                 currentElement.addEventListener('click', clickOptionHandler);
             })
         }
+    }
+    getEnvValue(){
+        let envValue = 'production_cba';
+        if(this.configuration.sandbox_mode === 'Yes'){
+            envValue = this.configuration.widget_configuration.config.type_sdk ?? 'preproduction_cba';
+        }
+        return envValue;
     }
 
     renderSaveCardCheckbox() {
