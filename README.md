@@ -106,9 +106,9 @@ after the file is loaded), for example do something like this:
 ```javascript
 import {loadScript} from "vue-plugin-load-script";
 
+const PRODUCTION_POWERBOARD_URL = 'https://widget.powerboard.commbank.com.au/sdk/latest/widget.umd.js';
+const SANDBOX_POWERBOARD_URL = 'https://widget.preproduction.powerboard.commbank.com.au/sdk/latest/widget.umd.js';
 const configuration = await getPowerboardPaymentsConfiguration();
-const PRODUCTION_POWERBOARD_URL = configuration?.widget_configuration.config.widget_url ?? 'https://widget.commbank.com.au/sdk/latest/widget.umd.js';
-const SANDBOX_POWERBOARD_URL = configuration?.widget_configuration.config.widget_test_url ?? 'https://widget.preproduction.powerboard.commbank.com.au/sdk/latest/widget.umd.js';
 const isSandbox = configuration?.sandbox_mode; 
 
 await loadScript(isSandbox === 'Yes' ? SANDBOX_POWERBOARD_URL : PRODUCTION_POWERBOARD_URL)
@@ -319,27 +319,30 @@ let response = await fetchWithToken(currentPaymentUrl, {
     headers: headers
 });
 let currentPayment = await response.json();
-        
+
 const updateData = {
     version: currentPayment.version,
     actions: [
         {
              action: "setCustomField",
-             name: "makePaymentRequest",
+             name: "PaymentExtensionRequest",
              value: JSON.stringify({
-                 orderId: widget.paymentId,
-                 paymentId: widget.paymentId,
-                 amount: {
-                     currency: currencyCode,
-                     value: centAmount
-                 },
-                 PowerboardTransactionId: paymentSource,
-                 PowerboardPaymentStatus: status,
-                 PowerboardPaymentType: paymentType,
-                 CommerceToolsUserId: commerceToolCustomerId,
-                 SaveCard: saveCard,
-                 VaultToken: vaultToken,
-                 AdditionalInfo: additionalInfo
+               action: "makePaymentRequest",
+               request: {
+                   orderId: widget.paymentId,
+                   paymentId: widget.paymentId,
+                   amount: {
+                       currency: currencyCode,
+                       value: centAmount
+                   },
+                   PowerboardTransactionId: paymentSource,
+                   PowerboardPaymentStatus: status,
+                   PowerboardPaymentType: paymentType,
+                   CommerceToolsUserId: commerceToolCustomerId,
+                   SaveCard: saveCard,
+                   VaultToken: vaultToken,
+                   AdditionalInfo: additionalInfo
+               }
              })
         }
    ]

@@ -951,26 +951,27 @@ export default class PowerboardCommercetoolsWidget {
                     version: this.configuration.paymentVersion,
                     actions: [{
                         action: "setCustomField",
-                        name: "getVaultTokenRequest",
-                        value: JSON.stringify({
-                            data,
-                            userId: this.userId,
-                            saveCard: this.saveCard,
-                            type: this.type
-                        })
+                        name: "PaymentExtensionRequest",
+                        value: JSON.stringify({action:"getVaultTokenRequest",request: {
+                                data,
+                                userId: this.userId,
+                                saveCard: this.saveCard,
+                                type: this.type
+                            }})
                     }]
                 }),
             });
 
             let responseData = await response.json();
             let paymentVersion = responseData?.version ?? null;
-            if(paymentVersion){
+            if (paymentVersion) {
                 this.configuration.paymentVersion = paymentVersion;
             }
-            responseData = responseData?.custom?.fields?.getVaultTokenResponse;
+            responseData = responseData?.custom?.fields?.PaymentExtensionResponse;
             if (responseData) {
                 responseData = JSON.parse(responseData);
             }
+
 
             if (responseData.status === "Success" && responseData.token) {
                 this.vaultToken = responseData.token;
@@ -1159,18 +1160,22 @@ export default class PowerboardCommercetoolsWidget {
                     version: this.configuration.paymentVersion,
                     actions: [{
                         action: "setCustomField",
-                        name: "getStandalone3dsTokenRequest",
-                        value: JSON.stringify(data)
+                        name: "PaymentExtensionRequest",
+                        value: JSON.stringify({action:"getVaultTokenRequest",request: {
+                                action: "getStandalone3dsTokenRequest",
+                                request:data
+                            }})
                     }]
                 }),
             });
 
             let responseData = await response.json();
             let paymentVersion = responseData?.version ?? null;
-            if(paymentVersion){
+            if (paymentVersion) {
                 this.configuration.paymentVersion = paymentVersion;
             }
-            responseData = responseData?.custom?.fields?.getStandalone3dsTokenResponse;
+            responseData = responseData?.custom?.fields?.PaymentExtensionResponse;
+
             if (responseData) {
                 responseData = JSON.parse(responseData);
             }
