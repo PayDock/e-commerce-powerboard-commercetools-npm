@@ -8,7 +8,7 @@
     "payments",
     "components"
   ],
-  "version": "2.0.8",
+  "version": "2.0.85",
   "description": "Widget for create payment methods",
   "main": "dist/widget.js",
   "files": [
@@ -26,12 +26,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/CommBank-PowerBoard/powerboard-e-commerce-commercetools-npm.git"
+    "url": "git+https://gitlab.com/jsp8795506/powerboard-commercetools-npm.git"
   },
   "author": "JSP",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/CommBank-PowerBoard/powerboard-e-commerce-commercetools-npm/issues"
+    "url": "https://gitlab.com/jsp8795506/powerboard-commercetools-npm/issues"
   },
-  "homepage": "https://github.com/CommBank-PowerBoard/powerboard-e-commerce-commercetools-npm#readme"
+  "homepage": "https://gitlab.com/jsp8795506/powerboard-commercetools-npm#readme"
 }

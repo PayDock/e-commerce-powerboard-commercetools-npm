@@ -1161,7 +1161,7 @@ export default class PowerboardCommercetoolsWidget {
                     actions: [{
                         action: "setCustomField",
                         name: "PaymentExtensionRequest",
-                        value: JSON.stringify({action:"getVaultTokenRequest",request: {
+                        value: JSON.stringify({action:"getStandalone3dsTokenRequest",request: {
                                 action: "getStandalone3dsTokenRequest",
                                 request:data
                             }})
