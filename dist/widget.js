@@ -514,9 +514,9 @@ export default class PowerboardCommercetoolsWidget {
 
             this.widget = new cba.HtmlWidget(this.selector, this.accessToken, gatewayId);
             const supportedCardIcons = configMethod.card_supported_card_schemes.map(item => item.value.toLowerCase());
-            this.widget.setSupportedCardIcons(supportedCardIcons);
+            this.widget.setSupportedCardIcons(supportedCardIcons, true);
 
-            this.widget.setFormFields(['address_country', 'address_postcode', 'address_state', 'address_city', 'address_line1', 'address_line2', 'email']);
+            this.widget.setFormFields(['address_country', 'address_postcode', 'address_state', 'address_city', 'address_line1', 'address_line2', 'email','card_ccv*','card_name*']);
 
             this.widget.onFinishInsert('input[name="payment_source_card_token"]', 'payment_source');
 
@@ -719,7 +719,7 @@ export default class PowerboardCommercetoolsWidget {
             if (inputHidden === null) {
                 widgetContainer.insertAdjacentHTML('afterend', '<input type="hidden" name="' + paymentSourceInput + '">')
             }
-            
+
             this.widget.onPaymentSuccessful((result) => {
                 document.querySelector('[name="' + paymentSourceInput + '"]').value = JSON.stringify(result);
                 if (this.paymentButtonElem) {
@@ -917,72 +917,74 @@ export default class PowerboardCommercetoolsWidget {
 
     async getVaultToken() {
         const configMethod = this.configuration.payment_methods[this.type].config;
-
         if (this.vaultToken !== undefined) {
             return this.vaultToken;
-        }
-
-        if (configMethod.card_3ds === 'In-built 3DS' && configMethod.card_3ds_flow === 'With OTT') {
-            return this.paymentSource;
-        }
-
-        try {
-            let data = {token: this.paymentSource};
-            if (['card', 'bank_accounts'].includes(this.type) && !this.saveCard) {
-                data.vault_type = 'session'
+        } else {
+            console.log(this.vaultToken);
+            if (configMethod.card_3ds === 'In-built 3DS' && configMethod.card_3ds_flow === 'With OTT') {
+                return this.paymentSource;
             }
 
-            data.address_country = this.additionalInfo.address_country ?? '';
-            data.address_postcode = this.additionalInfo.address_postcode ?? '';
-            data.address_city = this.additionalInfo.address_city ?? '';
-            data.address_state = this.additionalInfo.address_state ?? '';
-            data.address_line1 = this.additionalInfo.address_line ?? '';
-            let addressLine2 = this.additionalInfo.address_line2 ?? null;
-            if(addressLine2) {
-                data.address_line2 = addressLine2;
+            try {
+                let data = {token: this.paymentSource};
+                if (['card', 'bank_accounts'].includes(this.type) && !this.saveCard) {
+                    data.vault_type = 'session'
+                }
+
+                data.address_country = this.additionalInfo.address_country ?? '';
+                data.address_postcode = this.additionalInfo.address_postcode ?? '';
+                data.address_city = this.additionalInfo.address_city ?? '';
+                data.address_state = this.additionalInfo.address_state ?? '';
+                data.address_line1 = this.additionalInfo.address_line ?? '';
+                let addressLine2 = this.additionalInfo.address_line2 ?? null;
+                if (addressLine2) {
+                    data.address_line2 = addressLine2;
+                }
+
+                let response = await this.fetchWithToken(`${this.configuration.api_commercetools.url}${this.configuration.paymentId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        version: this.configuration.paymentVersion,
+                        actions: [{
+                            action: "setCustomField",
+                            name: "PaymentExtensionRequest",
+                            value: JSON.stringify({
+                                action: "getVaultTokenRequest", request: {
+                                    data,
+                                    userId: this.userId,
+                                    saveCard: this.saveCard,
+                                    type: this.type
+                                }
+                            })
+                        }]
+                    }),
+                });
+
+                let responseData = await response.json();
+                let paymentVersion = responseData?.version ?? null;
+                if (paymentVersion) {
+                    this.configuration.paymentVersion = paymentVersion;
+                }
+                responseData = responseData?.custom?.fields?.PaymentExtensionResponse;
+                if (responseData) {
+                    responseData = JSON.parse(responseData);
+                }
+
+
+                if (responseData.status === "Success" && responseData.token) {
+                    this.vaultToken = responseData.token;
+                    return this.vaultToken;
+                } else {
+                    throw new Error(responseData.error || 'Error');
+                }
+            } catch (error) {
+                // this.removeSpinner(this.selector);
+
+                throw error;
             }
-
-            let response = await this.fetchWithToken(`${this.configuration.api_commercetools.url}${this.configuration.paymentId}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    version: this.configuration.paymentVersion,
-                    actions: [{
-                        action: "setCustomField",
-                        name: "PaymentExtensionRequest",
-                        value: JSON.stringify({action:"getVaultTokenRequest",request: {
-                                data,
-                                userId: this.userId,
-                                saveCard: this.saveCard,
-                                type: this.type
-                            }})
-                    }]
-                }),
-            });
-
-            let responseData = await response.json();
-            let paymentVersion = responseData?.version ?? null;
-            if (paymentVersion) {
-                this.configuration.paymentVersion = paymentVersion;
-            }
-            responseData = responseData?.custom?.fields?.PaymentExtensionResponse;
-            if (responseData) {
-                responseData = JSON.parse(responseData);
-            }
-
-
-            if (responseData.status === "Success" && responseData.token) {
-                this.vaultToken = responseData.token;
-                return this.vaultToken;
-            } else {
-                throw new Error(responseData.error || 'Error');
-            }
-        } catch (error) {
-            // this.removeSpinner(this.selector);
-
-            throw error;
         }
     }
 
@@ -1161,11 +1163,12 @@ export default class PowerboardCommercetoolsWidget {
                     actions: [{
                         action: "setCustomField",
                         name: "PaymentExtensionRequest",
-                        value: JSON.stringify({action:"getStandalone3dsTokenRequest",request: {
-                                request:data
-                            }})
+                        value: JSON.stringify({
+                            action: "getStandalone3dsTokenRequest",
+                            request:data
+                        })
                     }]
-                }),
+                })
             });
 
             let responseData = await response.json();
@@ -1173,14 +1176,14 @@ export default class PowerboardCommercetoolsWidget {
             if (paymentVersion) {
                 this.configuration.paymentVersion = paymentVersion;
             }
-            responseData = responseData?.custom?.fields?.PaymentExtensionResponse;
+            let tokenResponse = responseData?.custom?.fields?.PaymentExtensionResponse;
 
-            if (responseData) {
-                responseData = JSON.parse(responseData);
+            if (tokenResponse) {
+                tokenResponse = JSON.parse(tokenResponse);
             }
 
-            if (responseData.status === "Success" && responseData.token) {
-                return responseData.token;
+            if (tokenResponse.status === "Success" && tokenResponse.token) {
+                return tokenResponse.token;
             } else {
                 throw new Error(responseData.message || 'Error');
             }
